@@ -58,7 +58,7 @@
         <div class="pic2"></div>
         <h1><i>Coloring the MA map by County</i></h1>
         <div class="pic3"></div>
-        <div class="pic4"></div>
+        
     </div>
 
     <script>
@@ -366,95 +366,7 @@
        
             MA_ColorMap(topology_data,county_data,".pic3",svgWidth,svgHeight)
 
-/*---------*/
-
-            const MA2017_ColorMap = (topo_data,add_data,containerName,width,height,margin=30)=> {
-                const SVG_VARcol = d3.select(containerName).append("svg")
-                    .attr("width", width)
-                    .attr("height", height);
-
-            /*-------------------------------------------------------*/
-            /*-----------------Topojson data handling----------------*/
-            /*-------------------------------------------------------*/
-            // if topojson file is imported we need to
-            // convert topology data to geojson
-            const geojsom_Ma2017Map = topojson.feature(topo_data, topo_data.objects.ma);
-
-            /*-------------------------------------------------------*/
-            /*----------------------Projections----------------------*/
-            /*-------------------------------------------------------*/
-            const Ma2017Map_projections = [
-                d3.geoAzimuthalEqualArea(), //Azimuthal projections project the sphere directly onto a plane.
-                d3.geoAlbersUsa(), // USA conic projection
-                d3.geoAlbers(), // equal-area conic projection
-                d3.geoMercator(), // cylindrical projection
-                d3.geoNaturalEarth1(), // pseudocylindrical projection designed by Tom Patterson
-                d3.geoEqualEarth(), // Equal Earth projection, by Bojan Šavrič et al., 2018.
-                d3.geoConicEqualArea(), //equal-area conic projection
-                d3.geoEquirectangular(), //Cylindrical Projections
-                d3.geoOrthographic()
-            ]
-            /*-------------------------------------------------------*/
-            /*----------------geoPath generator----------------------*/
-            /*-------------------------------------------------------*/
-
-            const geoPath_Ma2017map_Generator = d3.geoPath()
-            .projection(Ma2017Map_projections[3].fitSize([width-margin,height-margin], geojsom_Ma2017Map))
-
-            /*-------------------------------------------------------*/
-            /*----------------------Color Scaling--------------------*/
-            /*-------------------------------------------------------*/
-            //https://observablehq.com/@d3/working-with-color
-            //https://colorbrewer2.org/#type=diverging&scheme=RdYlBu&n=6
-            const colorInterpolator_forMaMap2017 = d3.interpolateRgbBasis(['#d73027','#fc8d59','#fee090','#e0f3f8','#91bfdb','#4575b4'].reverse())
-                // if the data is scaled using log scale
-            const logScale_Var = d3.scaleLog()
-                .domain(d3.extent(geojsom_Ma2017Map.features, (d) => {
-                    return d['properties']['FIPS_STCO']
-                }))
-            // if the data is scaled using linear scale
-            const linearScale_var17 = d3.scaleLinear()
-                .domain(d3.extent(geojsom_Ma2017Map.features, (d) => {
-                    return d['properties']['FIPS_STCO']
-                }))
-            /*-------------------------------------------------------*/
-            /*---------------------- Tooltip ------------------------*/
-            /*-------------------------------------------------------*/
-            const Ma2017Map_tooltip = d3.select("#tooltip");
-            /*--------------------------------------------------------*/
-            /*----------------- channelling marks --------------------*/
-            /*--------------------------------------------------------*/
-
-            SVG_VARcol.selectAll("path")
-                .data(geojsom_Ma2017Map.features)
-                .enter()
-                .append("path")
-                .attr("d", d => geoPath_Ma2017map_Generator(d))
-                //.attr("fill", d => colorInterpolator3(logScale(d['properties']['POP2017'])))
-                .attr("fill", d => colorInterpolator_forMaMap2017(linearScale_var17(d['properties']['FIPS_STCO'])))
-                .on("mouseenter", (m, d) => {
-                    Ma2017Map_tooltip.transition()
-                        .duration(200)
-                        .style("opacity", .9)
-                    Ma2017Map_tooltip.html(getCountyName(d['properties']['FIPS_STCO']))
-                        .style("left", m.clientX + "px")
-                        .style("top", m.clientY + "px");
-                })
-                .on("mousemove", (m, d) => {
-                    Ma2017Map_tooltip.style("opacity", .9)
-                })
-                .on("mouseout", (m, d) => {
-                    Ma2017Map_tooltip.transition()
-                        .duration(400)
-                        .style("opacity", 0)
-                })
-                function getCountyName(fipsCode) {
-                    const county = add_data.find(item => item.fips_code === fipsCode);
-                    return county ? county.county : "";
-                }
-            }
             
-            MA2017_ColorMap(topology_data,county_data,".pic4",svgWidth,svgHeight)
         })
     </script>
 </body>
